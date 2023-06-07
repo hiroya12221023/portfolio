@@ -17,16 +17,31 @@ class RedirectIfAuthenticated
      * @param  string|null  ...$guards
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle(Request $request, Closure $next, ...$guards)
-    {
-        $guards = empty($guards) ? [null] : $guards;
-
-        foreach ($guards as $guard) {
-            if (Auth::guard($guard)->check()) {
-                return redirect(RouteServiceProvider::HOME);
-            }
-        }
-
+public function handle(Request $request, Closure $next, ...$guards)
+{
+   if ($request->is('register')) {
+    if (!Auth::check()) {
         return $next($request);
+    } else {
+        return redirect('/login');
     }
+}
+
+$guards = empty($guards) ? [null] : $guards;
+
+foreach ($guards as $guard) {
+    if (Auth::guard($guard)->check()) {
+        if ($request->is('login')) {
+            return redirect('dashboard'); // /dashboard を RouteServiceProvider::HOME に変更
+        }
+        return redirect(RouteServiceProvider::HOME);
+    }
+}
+
+if ($request->is('login') && !Auth::check()) {
+    return $next($request);
+}
+
+return redirect('/register');
+}
 }
